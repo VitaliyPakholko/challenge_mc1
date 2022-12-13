@@ -13,11 +13,14 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
-public class Product {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Product
+{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "SKU", nullable = false, length = 50)
+    @NonNull
     private String id;
 
     @NonNull
@@ -55,7 +58,7 @@ public class Product {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Product product = (Product) o;
-        return id != null && Objects.equals(id, product.id);
+        return Objects.equals(id, product.id);
     }
 
     @Override

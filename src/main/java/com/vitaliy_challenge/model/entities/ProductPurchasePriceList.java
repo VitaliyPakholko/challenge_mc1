@@ -11,10 +11,11 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductPurchasePriceList {
+@Builder
+public class ProductPurchasePriceList
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", nullable = false)

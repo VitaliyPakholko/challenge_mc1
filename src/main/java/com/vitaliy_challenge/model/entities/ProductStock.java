@@ -11,8 +11,11 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
-public class ProductStock {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProductStock
+{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", nullable = false)

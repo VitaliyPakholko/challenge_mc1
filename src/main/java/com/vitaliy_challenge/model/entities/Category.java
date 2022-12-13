@@ -13,13 +13,14 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+@Builder
+public class Category
+{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CODE", nullable = false, length = 5)
+    @NonNull
     private String id;
 
     @NonNull
@@ -35,7 +36,7 @@ public class Category {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Category category = (Category) o;
-        return id != null && Objects.equals(id, category.id);
+        return Objects.equals(id, category.id);
     }
 
     @Override

@@ -12,13 +12,14 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor
-public class DbMigration {
+@Builder
+public class DbMigration
+{
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", nullable = false)
+    @NonNull
     private Integer id;
 
     @NonNull
@@ -58,7 +59,7 @@ public class DbMigration {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         DbMigration that = (DbMigration) o;
-        return id != null && Objects.equals(id, that.id);
+        return Objects.equals(id, that.id);
     }
 
     @Override
