@@ -8,7 +8,8 @@
 
 # Target
 /target/
-/target/*
+*/target/**
+target/*
 
 # User-specific stuff
 .idea/**/workspace.xml
