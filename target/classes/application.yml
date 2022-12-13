@@ -1,0 +1,25 @@
+quarkus:
+  hibernate-orm:
+    packages: com.vitaliy_challenge.model.entities
+    database:
+      generation: validate
+      default-schema: public
+
+
+  datasource:
+    db-kind: h2
+    username: sa
+    password: sa
+    jdbc:
+      url: jdbc:h2:file:~/IdeaProjects/mc1/src/main/resources/database
+
+#spring:
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate
+#    show-sql: true
+#  datasource:
+#    driverClassName: org.h2.Driver
+#    password: sa
+#    username: sa
+#    url: jdbc:h2:file:~/IdeaProjects/mc1/src/resources/database.mv.db
