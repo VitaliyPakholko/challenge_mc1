@@ -5,7 +5,9 @@ import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.mappers.IMapper;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "cdi", uses = {ProductMapper.class})
+@Mapper(componentModel = "cdi",
+        uses = {ProductMapper.class},
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CategoryMapper extends IMapper<Category, CategoryDto>
 {
     Category toEntity(Category category);

@@ -4,12 +4,11 @@ import com.vitaliy_challenge.model.dtos.concrete.ProductSalesPriceListDto;
 import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
 import com.vitaliy_challenge.model.mappers.IMapper;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
-@Mapper(componentModel = "cdi", uses = {ProductMapper.class})
+@Mapper(componentModel = "cdi",
+        uses = {ProductMapper.class},
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface ProductSalesMapper extends IMapper<ProductSalesPriceList, ProductSalesPriceListDto>
 {
     ProductSalesPriceList toEntity(ProductSalesPriceList productSalesPriceList);
