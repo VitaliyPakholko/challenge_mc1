@@ -1,5 +1,6 @@
 package com.vitaliy_challenge.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -26,12 +27,14 @@ public class ProductPurchasePriceList
     private Double price;
 
     @NonNull
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "PRODUCT_SKU", nullable = false)
     @ToString.Exclude
     private Product productSku;
 
     @NonNull
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "SUPPLIER_WAREHOUSE_CODE", nullable = false)
     @ToString.Exclude

@@ -1,5 +1,6 @@
 package com.vitaliy_challenge.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -23,10 +24,12 @@ public class SupplierWarehouse
     @NonNull
     private String id;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "supplierWarehouseCode")
     @ToString.Exclude
     private Set<ProductStock> productStocks = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "supplierWarehouseCode")
     @ToString.Exclude
     private Set<ProductPurchasePriceList> productPurchasePriceLists = new LinkedHashSet<>();

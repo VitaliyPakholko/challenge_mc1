@@ -1,5 +1,6 @@
 package com.vitaliy_challenge.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -26,7 +27,8 @@ public class Category
     @NonNull
     @Column(name = "DESCRIPTION", nullable = false)
     private String description;
-    
+
+    @JsonManagedReference
     @OneToMany(mappedBy = "categoryCode")
     @ToString.Exclude
     private Set<Product> products = new LinkedHashSet<>();

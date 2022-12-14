@@ -5,6 +5,7 @@ import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
 import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
 import com.vitaliy_challenge.model.entities.ProductStock;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,6 +16,7 @@ import java.util.Set;
  * A DTO for the {@link com.vitaliy_challenge.model.entities.Product} entity
  */
 @Data
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class ProductDto extends GenericDto implements Serializable
 {

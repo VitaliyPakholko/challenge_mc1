@@ -1,5 +1,7 @@
 package com.vitaliy_challenge.model.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -35,20 +37,24 @@ public class Product
     @Column(name = "VAT_VALUE", nullable = false)
     private Double vatValue;
 
+    @JsonBackReference
     @NonNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "CATEGORY_CODE", nullable = false)
     @ToString.Exclude
     private Category categoryCode;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "productSku")
     @ToString.Exclude
     private Set<ProductStock> productStocks = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "productSku")
     @ToString.Exclude
     private Set<ProductPurchasePriceList> productPurchasePriceLists = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "productSku")
     @ToString.Exclude
     private Set<ProductSalesPriceList> productSalesPriceLists = new LinkedHashSet<>();
