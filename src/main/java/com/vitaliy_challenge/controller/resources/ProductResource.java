@@ -9,6 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/product")
 public class ProductResource
@@ -19,9 +20,9 @@ public class ProductResource
     @GET
     @Path("/findbyId/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ProductDto findProductById(@PathParam("id") String id)
+    public Response findProductById(@PathParam("id") String id)
     {
-        return productService.findProductById(id);
+        return Response.ok(productService.findProductById(id)).build();
     }
 
 }

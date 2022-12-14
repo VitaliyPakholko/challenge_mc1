@@ -23,7 +23,6 @@ public class ProductServiceImpl implements ProductService
     public ProductDto findProductById(String id)
     {
         Optional<Product> optionalProduct = productRepository.findByIdOptional(id);
-        System.out.println(optionalProduct.orElse(null));
         return mapper.toDto(optionalProduct.orElse(null));
     }
 
