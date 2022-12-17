@@ -1,7 +1,7 @@
 package com.vitaliy_challenge.controller.repositories;
 
-import com.vitaliy_challenge.controller.restApis.Requests.PagedProductRequest;
-import com.vitaliy_challenge.controller.restApis.Responses.PagedProductResponse;
+import com.vitaliy_challenge.controller.communication.Requests.PagedProductRequest;
+import com.vitaliy_challenge.controller.communication.Responses.PagedProductResponse;
 import com.vitaliy_challenge.model.dtos.concrete.ProductDtoSlim;
 import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.entities.Product;

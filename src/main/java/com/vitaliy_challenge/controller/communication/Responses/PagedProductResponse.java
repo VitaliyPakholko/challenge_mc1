@@ -1,4 +1,4 @@
-package com.vitaliy_challenge.controller.restApis.Responses;
+package com.vitaliy_challenge.controller.communication.Responses;
 
 import com.vitaliy_challenge.model.dtos.concrete.ProductDtoSlim;
 import lombok.Builder;
