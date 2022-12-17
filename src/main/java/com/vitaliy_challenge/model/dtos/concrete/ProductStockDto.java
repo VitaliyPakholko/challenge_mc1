@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class ProductStockDto extends GenericDto implements Serializable
 {
     private final Long id;
-    private final ProductDto productSku;
+    private final ProductDtoFull productSku;
     private final Integer quantity;
     private final SupplierWarehouse supplierWarehouseCode;
 }

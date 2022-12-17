@@ -59,6 +59,9 @@ public class Product
     @ToString.Exclude
     private Set<ProductSalesPriceList> productSalesPriceLists = new LinkedHashSet<>();
 
+    @Column(name = "CATEGORY_CODE", insertable = false, updatable = false)
+    private String categoryCodeString;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

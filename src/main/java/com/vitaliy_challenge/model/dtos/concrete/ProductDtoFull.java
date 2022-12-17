@@ -18,7 +18,7 @@ import java.util.Set;
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class ProductDto extends GenericDto implements Serializable
+public class ProductDtoFull extends GenericDto implements Serializable
 {
     private final String id;
     private final String mpn;

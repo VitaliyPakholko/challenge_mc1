@@ -1,6 +1,6 @@
 package com.vitaliy_challenge.model.mappers.impls;
 
-import com.vitaliy_challenge.model.dtos.concrete.ProductDto;
+import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
 import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.mappers.IMapper;
 import org.mapstruct.*;
@@ -8,14 +8,14 @@ import org.mapstruct.*;
 @Mapper(componentModel = "cdi", uses = {CategoryMapper.class,
         ProductStockMapper.class, ProductPurchaseMapper.class, ProductSalesMapper.class},
         injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface ProductMapper extends IMapper<Product, ProductDto>
+public interface ProductMapper extends IMapper<Product, ProductDtoFull>
 {
-    Product toEntity(ProductDto productDto);
+    Product toEntity(ProductDtoFull productDtoFull);
 
-    ProductDto toDto(Product product);
+    ProductDtoFull toDto(Product product);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    Product partialUpdate(ProductDto productDto, @MappingTarget Product product);
+    Product partialUpdate(ProductDtoFull productDtoFull, @MappingTarget Product product);
 
     @AfterMapping
     default void linkProductStocks(@MappingTarget Product product)

@@ -4,7 +4,7 @@ import com.vitaliy_challenge.controller.repositories.ProductRepository;
 import com.vitaliy_challenge.controller.restApis.Requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.restApis.Responses.PagedProductResponse;
 import com.vitaliy_challenge.controller.services.ProductService;
-import com.vitaliy_challenge.model.dtos.concrete.ProductDto;
+import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
 import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.mappers.impls.ProductMapper;
 
@@ -21,7 +21,7 @@ public class ProductServiceImpl implements ProductService
     @Inject
     ProductMapper mapper;
 
-    public ProductDto productById(String id)
+    public ProductDtoFull productById(String id)
     {
         Optional<Product> optionalProduct = productRepository.findByIdOptional(id);
         return mapper.toDto(optionalProduct.orElse(null));
@@ -30,8 +30,7 @@ public class ProductServiceImpl implements ProductService
     @Override
     public PagedProductResponse filteredProducts(PagedProductRequest request)
     {
-        productRepository.getPagedProducts(request);
-        return null;
+        return productRepository.getPagedProducts(request);
     }
 
 }

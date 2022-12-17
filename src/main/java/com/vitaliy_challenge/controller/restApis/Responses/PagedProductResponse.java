@@ -1,6 +1,6 @@
 package com.vitaliy_challenge.controller.restApis.Responses;
 
-import com.vitaliy_challenge.model.dtos.concrete.ProductDto;
+import com.vitaliy_challenge.model.dtos.concrete.ProductDtoSlim;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,5 +13,5 @@ public class PagedProductResponse
     private Integer pageSize;
     private Integer pageNumber;
     private Integer totalElements;
-    private List<ProductDto> results;
+    private List<ProductDtoSlim> results;
 }

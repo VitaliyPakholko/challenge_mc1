@@ -15,7 +15,7 @@ import java.time.Instant;
 public class ProductSalesPriceListDto extends GenericDto implements Serializable
 {
     private final Long id;
-    private final ProductDto productSku;
+    private final ProductDtoFull productSku;
     private final Double streetPriceVat;
     private final Double finalPrice;
     private final String promotion;

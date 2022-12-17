@@ -2,12 +2,13 @@ package com.vitaliy_challenge.controller.repositories;
 
 import com.vitaliy_challenge.controller.restApis.Requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.restApis.Responses.PagedProductResponse;
-import com.vitaliy_challenge.model.dtos.concrete.ProductDto;
+import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
+import com.vitaliy_challenge.model.dtos.concrete.ProductDtoSlim;
 import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.entities.ProductStock;
 import com.vitaliy_challenge.model.entities.SupplierWarehouse;
-import com.vitaliy_challenge.model.mappers.impls.ProductMapper;
+import com.vitaliy_challenge.model.mappers.impls.ProductSlimConverter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -22,110 +23,92 @@ import java.util.stream.Collectors;
 public class ProductRepository implements PanacheRepositoryBase<Product, String>
 {
     @Inject
-    ProductMapper mapper;
+    ProductSlimConverter converter;
 
     private final CriteriaBuilder cb = this.getEntityManager().getCriteriaBuilder();
+    private final CriteriaQuery<Product> cq = cb.createQuery(Product.class).distinct(true);
+    private final Root<Product> productRoot = cq.from(Product.class);
+    private TypedQuery<Product> typedQuery;
+
+
 
     public PagedProductResponse getPagedProducts(PagedProductRequest request)
     {
-
-        CriteriaQuery<Product> cq = cb.createQuery(Product.class);
-        Root<Product> productRoot = cq.from(Product.class);
-        Join<Product, ProductStock> join = productRoot.join("productStocks");
-        cq.distinct(true);
-        cq.where(cb.and(
-                cb.in(join).value(findProductsWithStock(cq)),
-                cb.in(join).value(findProductsByWarehouseCode(cq, request.getWarehouseCode()))//,
-//                cb.in(join).value(findProductsByCategory(cq, request.getCategoryCodes()))
-        ));
-
-        TypedQuery<Product> typedQuery = this.getEntityManager().createQuery(cq);
-
+        this.createQueryWithPredicates(this.assemblePredicates(request));
         List<Product> products = typedQuery.getResultList();
 
-        List<ProductDto> productDtos =
-                products.stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+        List<ProductDtoSlim> productDtoFulls = this.mapToSlimDto(products);
 
         return PagedProductResponse.builder()
-                .results(productDtos)
+                .results(productDtoFulls)
                 .build();
     }
 
-//    public Predicate buildPredicates(PagedProductRequest request, CriteriaBuilder cb)
-//    {
-//        List<Predicate> andPredicates = new ArrayList<>();
-//        List<Predicate> orPredicates = new ArrayList<>();
-//
-//        CriteriaQuery<Product> cq = cb.createQuery(Product.class);
-//        Root<Product> productRoot = cq.from(Product.class);
-//
-//
-//        if(request.getWithStock() != null && request.getWithStock().equals(Boolean.TRUE))
-//        {
-//            Join<Product, ProductStock> join = productRoot.join("productStocks", JoinType.LEFT);
-//
-////            Predicate p = productRoot.get("productStocks").isNotNull();
-//            Predicate p = cb.in(join);
-//            andPredicates.add(p);
-////            cb.and(p);
-//        }
-//
-//        if(request.getCategoryCodes() != null && !request.getWarehouseCode().isEmpty())
-//        {
-//            for(String s : request.getCategoryCodes())
-//            {
-//                Predicate p = cb.equal(productRoot.get("categoryCode").get("id"), s);
-//                orPredicates.add(p);
-//                cb.or(p);
-//            }
-//        }
-//
-//        if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty())
-//        {
-//            Predicate p = cb.equal(productRoot.get("productStocks").get("supplierWarehouseCode").get("id"), request.getWarehouseCode());
-//            andPredicates.add(p);
-//            cb.and(p);
-//        }
-//        return null;
-//    }
-
-    public Subquery<ProductStock> findProductsWithStock(CriteriaQuery<Product> cq)
+    private Predicate[] assemblePredicates(PagedProductRequest request)
     {
-        Subquery<ProductStock> subquery = cq.subquery(ProductStock.class);
-        Root<Product> from = subquery.from(Product.class);
-        Join<Product, ProductStock> join = from.join("productStocks");
+        List<Predicate> predicates = new ArrayList<>();
+
+        if(request.getWithStock() != null && request.getWithStock().equals(Boolean.TRUE))
+            predicates.add(cb.and(cb.in(productRoot).value(findProductsWithStock(cq))));
+
+        if(request.getCategoryCodes() != null && !request.getWarehouseCode().isEmpty())
+            predicates.add(cb.and(cb.in(productRoot).value(findProductsByWarehouseCode(cq, request.getWarehouseCode()))));
+
+        if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty())
+            predicates.add(cb.and(cb.in(productRoot).value(findProductsByCategory(cq, request.getCategoryCodes()))));
+
+        return predicates.toArray(new Predicate[0]);
+    }
+
+    private void createQueryWithPredicates(Predicate...predicates)
+    {
+        cq.where(predicates);
+        this.typedQuery = this.getEntityManager().createQuery(cq);
+    }
+
+    private Subquery<Product> findProductsWithStock(CriteriaQuery<Product> cq)
+    {
+        Subquery<Product> subquery = cq.subquery(Product.class);
+        Root<ProductStock> from = subquery.from(ProductStock.class);
+        Join<ProductStock,Product> join = from.join("productSku");
 
         subquery.select(join).distinct(true);
         return subquery;
     }
 
-    public Subquery<ProductStock> findProductsByWarehouseCode(CriteriaQuery<Product> cq, String warehouseCode)
+    private Subquery<Product> findProductsByWarehouseCode(CriteriaQuery<Product> cq, String warehouseCode)
     {
-        Subquery<ProductStock> subquery = cq.subquery(ProductStock.class);
-        Root<SupplierWarehouse> from = subquery.from(SupplierWarehouse.class);
-        Join<SupplierWarehouse,ProductStock> join = from.join("productStocks");
+        Subquery<Product> subquery = cq.subquery(Product.class);
+        Root<SupplierWarehouse> supplier = subquery.from(SupplierWarehouse.class);
+        Join<SupplierWarehouse,ProductStock> join = supplier.join("productStocks");
+        Join<ProductStock,Product> join2 = join.join("productSku");
 
         subquery.distinct(true);
-        subquery.select(join);
+        subquery.select(join2);
         subquery.where(this.cb.equal(join.get("supplierWarehouseCode").get("id"), warehouseCode));
 
         return subquery;
     }
 
-//    public Subquery<Product> findProductsByCategory(CriteriaQuery<Product> cq, List<String> categories)
-//    {
-//        Subquery<Product> subquery = cq.subquery(Product.class);
-//        Root<Product> from = subquery.from(Product.class);
-//        Join<Category,Product> join = from.join("products");
-//
-//        subquery.distinct(true);
-//        subquery.select(join);
-//        for(String cat: categories)
-//            subquery.where(this.cb.equal(join.get("id"), cat));
-//
-//        return subquery;
-//    }
+    private Subquery<Product> findProductsByCategory(CriteriaQuery<Product> cq, List<String> categories)
+    {
+        Subquery<Product> subquery = cq.subquery(Product.class);
+        Root<Product> from = subquery.from(Product.class);
+        Join<Category,Product> join = from.join("categoryCode");
+
+        subquery.distinct(true);
+        subquery.select(from);
+        for(String cat: categories)
+            subquery.where(this.cb.or(this.cb.equal(join.get("id"), cat)));
+
+        return subquery;
+    }
+
+    private List<ProductDtoSlim> mapToSlimDto(List<Product> products)
+    {
+        return products.stream()
+        .map(converter::toDto)
+        .collect(Collectors.toList());
+    }
 
 }

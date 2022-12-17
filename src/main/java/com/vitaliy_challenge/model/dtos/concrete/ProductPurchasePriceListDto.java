@@ -16,6 +16,6 @@ public class ProductPurchasePriceListDto extends GenericDto implements Serializa
 {
     private final Long id;
     private final Double price;
-    private final ProductDto productSku;
+    private final ProductDtoFull productSku;
     private final SupplierWarehouse supplierWarehouseCode;
 }

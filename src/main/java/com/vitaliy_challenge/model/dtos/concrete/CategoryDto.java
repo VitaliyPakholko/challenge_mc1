@@ -1,7 +1,6 @@
 package com.vitaliy_challenge.model.dtos.concrete;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.vitaliy_challenge.model.dtos.GenericDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,5 +18,5 @@ public class CategoryDto extends GenericDto implements Serializable
     private final String id;
     private final String description;
     @JsonIgnore
-    private final Set<ProductDto> products;
+    private final Set<ProductDtoFull> products;
 }
