@@ -2,7 +2,6 @@ package com.vitaliy_challenge.controller.repositories;
 
 import com.vitaliy_challenge.controller.restApis.Requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.restApis.Responses.PagedProductResponse;
-import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
 import com.vitaliy_challenge.model.dtos.concrete.ProductDtoSlim;
 import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.entities.Product;
@@ -49,13 +48,19 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
         List<Predicate> predicates = new ArrayList<>();
 
         if(request.getWithStock() != null && request.getWithStock().equals(Boolean.TRUE))
-            predicates.add(cb.and(cb.in(productRoot).value(findProductsWithStock(cq))));
+            predicates.add(cb.and(
+                    cb.in(productRoot).value(findProductsWithStock(cq))
+                    ));
 
         if(request.getCategoryCodes() != null && !request.getWarehouseCode().isEmpty())
-            predicates.add(cb.and(cb.in(productRoot).value(findProductsByWarehouseCode(cq, request.getWarehouseCode()))));
+            predicates.add(cb.and(
+                    cb.in(productRoot).value(findProductsByWarehouseCode(cq, request.getWarehouseCode()))
+            ));
 
         if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty())
-            predicates.add(cb.and(cb.in(productRoot).value(findProductsByCategory(cq, request.getCategoryCodes()))));
+            predicates.add(cb.and(
+                    cb.in(productRoot).value(findProductsByCategory(cq, request.getCategoryCodes()))
+            ));
 
         return predicates.toArray(new Predicate[0]);
     }
@@ -95,12 +100,15 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
         Subquery<Product> subquery = cq.subquery(Product.class);
         Root<Product> from = subquery.from(Product.class);
         Join<Category,Product> join = from.join("categoryCode");
+        List<Predicate> orPredicates = new ArrayList<>();
 
         subquery.distinct(true);
         subquery.select(from);
+        
         for(String cat: categories)
-            subquery.where(this.cb.or(this.cb.equal(join.get("id"), cat)));
+            orPredicates.add(this.cb.equal(join.get("id"), cat));
 
+        subquery.where(cb.or(orPredicates.toArray(new Predicate[0])));
         return subquery;
     }
 
