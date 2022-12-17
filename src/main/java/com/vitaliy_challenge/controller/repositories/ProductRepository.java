@@ -28,18 +28,25 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
     private final CriteriaQuery<Product> cq = cb.createQuery(Product.class).distinct(true);
     private final Root<Product> productRoot = cq.from(Product.class);
     private TypedQuery<Product> typedQuery;
+    private final Path<Product> COLUMN_TO_ORDER = productRoot.get("streetPriceVat");
 
 
 
     public PagedProductResponse getPagedProducts(PagedProductRequest request)
     {
-        this.createQueryWithPredicates(this.assemblePredicates(request));
+        this.createOrderedQuery(this.assemblePredicates(request));
+        Long totalFound = typedQuery.getResultStream().count();
+        typedQuery.setFirstResult((request.getPageNumber() - 1) * request.getPageSize());
+        typedQuery.setMaxResults(request.getPageSize());
         List<Product> products = typedQuery.getResultList();
 
         List<ProductDtoSlim> productDtoFulls = this.mapToSlimDto(products);
 
         return PagedProductResponse.builder()
                 .results(productDtoFulls)
+                .pageSize(request.getPageSize())
+                .pageNumber(request.getPageNumber())
+                .totalElements(totalFound)
                 .build();
     }
 
@@ -70,9 +77,9 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
         return predicates.toArray(new Predicate[0]);
     }
 
-    private void createQueryWithPredicates(Predicate...predicates)
+    private void createOrderedQuery(Predicate...predicates)
     {
-        cq.where(predicates);
+        cq.where(predicates).orderBy(cb.asc(COLUMN_TO_ORDER));
         this.typedQuery = this.getEntityManager().createQuery(cq);
     }
 

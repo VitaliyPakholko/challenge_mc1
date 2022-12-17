@@ -12,6 +12,6 @@ public class PagedProductResponse
 {
     private Integer pageSize;
     private Integer pageNumber;
-    private Integer totalElements;
+    private Long totalElements;
     private List<ProductDtoSlim> results;
 }
