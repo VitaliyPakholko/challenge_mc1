@@ -13,6 +13,8 @@ quarkus:
     database:
       generation: validate
       default-schema: public
+    log:
+      sql: true
 
 
   datasource:
