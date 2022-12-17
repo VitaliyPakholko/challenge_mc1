@@ -47,17 +47,22 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
     {
         List<Predicate> predicates = new ArrayList<>();
 
-        if(request.getWithStock() != null && request.getWithStock().equals(Boolean.TRUE))
-            predicates.add(cb.and(
-                    cb.in(productRoot).value(findProductsWithStock(cq))
-                    ));
+        if(request.getWithStock() != null)
+            if(request.getWithStock().equals(Boolean.TRUE))
+                predicates.add(cb.and(
+                        cb.in(productRoot).value(findProductsWithStock(cq))
+                        ));
+            else
+                predicates.add(cb.and(
+                        cb.not(cb.in(productRoot).value(findProductsWithStock(cq)))
+                ));
 
-        if(request.getCategoryCodes() != null && !request.getWarehouseCode().isEmpty())
+        if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty())
             predicates.add(cb.and(
                     cb.in(productRoot).value(findProductsByWarehouseCode(cq, request.getWarehouseCode()))
             ));
 
-        if(request.getWarehouseCode() != null && !request.getWarehouseCode().isEmpty())
+        if(request.getCategoryCodes() != null && !request.getCategoryCodes().isEmpty())
             predicates.add(cb.and(
                     cb.in(productRoot).value(findProductsByCategory(cq, request.getCategoryCodes()))
             ));
@@ -104,7 +109,7 @@ public class ProductRepository implements PanacheRepositoryBase<Product, String>
 
         subquery.distinct(true);
         subquery.select(from);
-        
+
         for(String cat: categories)
             orPredicates.add(this.cb.equal(join.get("id"), cat));
 
