@@ -1,6 +1,6 @@
 package com.vitaliy_challenge.controller.resources;
 
-import com.vitaliy_challenge.controller.communication.Requests.PagedProductRequest;
+import com.vitaliy_challenge.controller.communication.requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.services.ProductService;
 
 import javax.inject.Inject;
