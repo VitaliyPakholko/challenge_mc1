@@ -1,9 +1,9 @@
-package com.vitaliy_challenge.controller.services.impls;
+package com.vitaliy_challenge.controller.rest.services.impls;
 
-import com.vitaliy_challenge.controller.repositories.ProductRepository;
-import com.vitaliy_challenge.controller.communication.requests.PagedProductRequest;
-import com.vitaliy_challenge.controller.communication.responses.PagedProductResponse;
-import com.vitaliy_challenge.controller.services.ProductService;
+import com.vitaliy_challenge.controller.rest.repositories.ProductRepository;
+import com.vitaliy_challenge.controller.rest.communication.requests.PagedProductRequest;
+import com.vitaliy_challenge.controller.rest.communication.responses.PagedProductResponse;
+import com.vitaliy_challenge.controller.rest.services.ProductService;
 import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
 import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.mappers.impls.ProductMapper;
@@ -16,21 +16,21 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService
 {
     @Inject
-    ProductRepository productRepository;
+    ProductRepository productRepositoryPanache;
 
     @Inject
     ProductMapper mapper;
 
     public ProductDtoFull productById(String id)
     {
-        Optional<Product> optionalProduct = productRepository.findByIdOptional(id);
+        Optional<Product> optionalProduct = productRepositoryPanache.findByIdOptional(id);
         return mapper.toDto(optionalProduct.orElse(null));
     }
 
     @Override
     public PagedProductResponse filteredProducts(PagedProductRequest request)
     {
-        return productRepository.getPagedProducts(request);
+        return productRepositoryPanache.getPagedProducts(request);
     }
 
 }

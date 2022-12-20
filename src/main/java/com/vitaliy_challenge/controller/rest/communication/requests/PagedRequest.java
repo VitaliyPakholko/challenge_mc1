@@ -1,4 +1,4 @@
-package com.vitaliy_challenge.controller.communication.requests;
+package com.vitaliy_challenge.controller.rest.communication.requests;
 
 import lombok.Data;
 

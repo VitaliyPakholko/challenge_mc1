@@ -1,7 +1,8 @@
-package com.vitaliy_challenge.controller.resources;
+package com.vitaliy_challenge.controller.rest.resources;
 
-import com.vitaliy_challenge.controller.communication.requests.PagedProductRequest;
-import com.vitaliy_challenge.controller.services.ProductService;
+import com.vitaliy_challenge.controller.rest.communication.requests.PagedProductRequest;
+import com.vitaliy_challenge.controller.rest.services.ProductService;
+import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -13,6 +14,9 @@ public class ProductResource
 {
     @Inject
     ProductService productService;
+
+    @Inject
+    SalesPricesGenerator generator;
 
     @GET
     @Path("/findbyId/{id}")
@@ -29,6 +33,13 @@ public class ProductResource
     public Response filterProducts(PagedProductRequest request)
     {
         return Response.ok(productService.filteredProducts(request)).build();
+    }
+
+    @GET
+    @Path("/generatePricings")
+    public void generatePricings()
+    {
+        generator.generateAllPricings();
     }
 
 }

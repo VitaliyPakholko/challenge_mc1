@@ -1,6 +1,7 @@
 package com.vitaliy_challenge.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -59,6 +60,7 @@ public class Product
     @ToString.Exclude
     private Set<ProductSalesPriceList> productSalesPriceLists = new LinkedHashSet<>();
 
+    @JsonIgnore
     @Column(name = "CATEGORY_CODE", insertable = false, updatable = false)
     private String categoryCodeString;
 

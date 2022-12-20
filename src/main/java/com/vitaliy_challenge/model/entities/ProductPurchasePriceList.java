@@ -1,6 +1,7 @@
 package com.vitaliy_challenge.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -39,6 +40,11 @@ public class ProductPurchasePriceList
     @JoinColumn(name = "SUPPLIER_WAREHOUSE_CODE", nullable = false)
     @ToString.Exclude
     private SupplierWarehouse supplierWarehouseCode;
+
+    @JsonIgnore
+    @Column(name = "PRODUCT_SKU", insertable = false, updatable = false)
+    private String productCode;
+
 
     @Override
     public boolean equals(Object o) {

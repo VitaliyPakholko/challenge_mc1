@@ -1,7 +1,7 @@
-package com.vitaliy_challenge.controller.services;
+package com.vitaliy_challenge.controller.rest.services;
 
-import com.vitaliy_challenge.controller.communication.requests.PagedProductRequest;
-import com.vitaliy_challenge.controller.communication.responses.PagedProductResponse;
+import com.vitaliy_challenge.controller.rest.communication.requests.PagedProductRequest;
+import com.vitaliy_challenge.controller.rest.communication.responses.PagedProductResponse;
 import com.vitaliy_challenge.model.dtos.concrete.ProductDtoFull;
 
 public interface ProductService
