@@ -16,7 +16,7 @@ public abstract class Constants
     public static final Double PCN_MARGIN = 1D - 0.01;
     public static final Double PIC_MARGIN = 1D - 0.12;
     public static final Double DEFAULT_STREET_MARGIN = 1D - 0.10;
-
     public static final Double DEFAULT_PRICE_INCREMENT = 1D + 0.03;
+    public static final Integer MINIMUM_WAREHOUSE_STOCK = 50;
 
 }

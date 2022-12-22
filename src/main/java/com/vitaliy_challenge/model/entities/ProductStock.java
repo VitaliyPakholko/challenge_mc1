@@ -1,6 +1,7 @@
 package com.vitaliy_challenge.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -39,6 +40,10 @@ public class ProductStock
     @JoinColumn(name = "SUPPLIER_WAREHOUSE_CODE", nullable = false)
     @ToString.Exclude
     private SupplierWarehouse supplierWarehouseCode;
+
+    @JsonIgnore
+    @Column(name = "SUPPLIER_WAREHOUSE_CODE", insertable = false, updatable = false)
+    private String warehouseString;
 
     @Override
     public boolean equals(Object o) {
