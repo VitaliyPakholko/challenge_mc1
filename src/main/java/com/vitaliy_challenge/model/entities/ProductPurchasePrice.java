@@ -16,7 +16,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductPurchasePriceList
+public class ProductPurchasePrice
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,7 +54,7 @@ public class ProductPurchasePriceList
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ProductPurchasePriceList that = (ProductPurchasePriceList) o;
+        ProductPurchasePrice that = (ProductPurchasePrice) o;
         return id != null && Objects.equals(id, that.id);
     }
 

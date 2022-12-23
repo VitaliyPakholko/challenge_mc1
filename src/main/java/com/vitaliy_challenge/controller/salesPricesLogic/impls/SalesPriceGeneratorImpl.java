@@ -7,7 +7,7 @@ import com.vitaliy_challenge.controller.rest.repositories.ProductStockRepository
 import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.Constants;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.CustomMarginCategoriesEnum;
-import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
+import com.vitaliy_challenge.model.entities.ProductPurchasePrice;
 import com.vitaliy_challenge.model.entities.ProductSalesPrice;
 import com.vitaliy_challenge.model.entities.ProductStock;
 import lombok.*;
@@ -77,13 +77,13 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
 
     private void populatePurchasePriceMap() throws RuntimeException
     {
-        List<ProductPurchasePriceList> purchasePriceList = purchaseRepository.listAll();
+        List<ProductPurchasePrice> purchasePriceList = purchaseRepository.listAll();
         this.productCodeToInfoMap = new HashMap<>();
         productCodeToInfoMap = purchasePriceList.stream()
                 .collect(
                         groupingBy(
-                                ProductPurchasePriceList::getProductCode,
-                                groupingBy(ProductPurchasePriceList::getWarehouseString, collectingAndThen(toList(), salesPricesForWarehouse->
+                                ProductPurchasePrice::getProductCode,
+                                groupingBy(ProductPurchasePrice::getWarehouseString, collectingAndThen(toList(), salesPricesForWarehouse->
                                 {
                                     if(salesPricesForWarehouse.size() != 1)
                                     {
@@ -91,7 +91,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
                                         throw new RuntimeException("Unexpected dupplication in db");
                                     }
 
-                                    ProductPurchasePriceList p = salesPricesForWarehouse.get(0);
+                                    ProductPurchasePrice p = salesPricesForWarehouse.get(0);
                                     return ProductPriceInfo.builder()
                                             .sku(           p.getProductCode())
                                             .purchasePrice( p.getPrice())

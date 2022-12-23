@@ -1,6 +1,7 @@
 package com.vitaliy_challenge.model.dtos.concrete;
 
 import com.vitaliy_challenge.model.dtos.GenericDto;
+import com.vitaliy_challenge.model.entities.ProductPurchasePrice;
 import com.vitaliy_challenge.model.entities.SupplierWarehouse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 /**
- * A DTO for the {@link com.vitaliy_challenge.model.entities.ProductPurchasePriceList} entity
+ * A DTO for the {@link ProductPurchasePrice} entity
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
