@@ -39,7 +39,13 @@ public class ProductResource
     @Path("/generatePricings")
     public void generatePricings()
     {
-        generator.generateAllPricings();
+        try
+        {
+            generator.generateAllPricings();
+        } catch (RuntimeException e)
+        {
+            System.out.println("Failed to generate pricings");
+        }
     }
 
 }

@@ -1,13 +1,14 @@
 package com.vitaliy_challenge.controller.salesPricesLogic.impls;
 
 import com.vitaliy_challenge.controller.rest.repositories.ProductPurchasePriceRepository;
+import com.vitaliy_challenge.controller.rest.repositories.ProductRepository;
 import com.vitaliy_challenge.controller.rest.repositories.ProductSalesPriceRepository;
 import com.vitaliy_challenge.controller.rest.repositories.ProductStockRepository;
 import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.Constants;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.CustomMarginCategoriesEnum;
-import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
+import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
 import com.vitaliy_challenge.model.entities.ProductStock;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
@@ -16,10 +17,12 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 @Log4j2
 @ApplicationScoped
@@ -32,16 +35,12 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
     ProductSalesPriceRepository salesRepository;
 
     @Inject
+    ProductRepository productRepository;
+
+    @Inject
     ProductStockRepository stockRepository;
 
-    private  Map<ProductMapKey, ProductPriceInfo> productPriceMap;
-
-    @AllArgsConstructor
-    private class ProductMapKey
-    {
-        private String sku;
-        private String warehouse;
-    }
+    private  Map<String, Map<String,ProductPriceInfo>> productCodeToInfoMap;
 
     @Override
     @PostConstruct
@@ -64,118 +63,192 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
         private Double vatValue;
         private String category;
         private Double generatedPrice;
-//        private Boolean hasX_M1;
-        private Boolean hasX_M2orM4;
-        private Boolean hasM1AndM2;
-        private Boolean noWarehousePreference;
         private String warehouse;
-        private String bestWarehouse;
+//        private Double margin;
+        private Boolean isActive;
+        private Integer stockQuantity;
 
     }
 
     @Override
-    public void generateAllPricings()
+    public void generateAllPricings() throws RuntimeException
     {
-
-       this.populatePurchasePriceMap();
-       this.populateMapPrices();
-
+        this.populatePurchasePriceMap();
+        this.populateMapPrices();
+        this.generateProductWarehouses();
+        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
+            for(ProductPriceInfo p: map.values())
+                if(p.isActive != null && p.isActive)
+                    System.out.println("Active: " + p.sku + " with stock: " + p.stockQuantity + " in warehouse: " + p.warehouse);
+        System.out.println("Hi");
     }
 
-    private void populatePurchasePriceMap()
+    private void populatePurchasePriceMap() throws RuntimeException
     {
         List<ProductPurchasePriceList> purchasePriceList = purchaseRepository.listAll();
-        this.productPriceMap = new HashMap<>();
-        purchasePriceList.forEach(
-                p -> productPriceMap.put(
-                        new ProductMapKey(p.getProductCode(), p.getSupplierWarehouseCode().getId()),
-                        ProductPriceInfo.builder()
-                                .sku(           p.getProductCode())
-                                .purchasePrice( p.getPrice())
-                                .streetPriceVat(p.getProductSku().getStreetPriceVat())
-                                .vatValue(      p.getProductSku().getVatValue())
-                                .category(      p.getProductSku().getCategoryCodeString())
-                                .warehouse(     p.getSupplierWarehouseCode().getId())
-                                .build()
+        this.productCodeToInfoMap = new HashMap<>();
+        productCodeToInfoMap = purchasePriceList.stream()
+                .collect(
+                        groupingBy(
+                                ProductPurchasePriceList::getProductCode,
+                                groupingBy(ProductPurchasePriceList::getWarehouseString, collectingAndThen(toList(), salesPricesForWarehouse->
+                                {
+                                    if(salesPricesForWarehouse.size() != 1)
+                                    {
+                                        log.error("Unexpected dupplication in db");
+                                        throw new RuntimeException("Unexpected dupplication in db");
+                                    }
 
-                ));
+                                    ProductPurchasePriceList p = salesPricesForWarehouse.get(0);
+                                    return ProductPriceInfo.builder()
+                                            .sku(           p.getProductCode())
+                                            .purchasePrice( p.getPrice())
+                                            .streetPriceVat(p.getProductSku().getStreetPriceVat())
+                                            .vatValue(      p.getProductSku().getVatValue())
+                                            .category(      p.getProductSku().getCategoryCodeString())
+                                            .warehouse(     p.getSupplierWarehouseCode().getId())
+                                            .isActive(false)
+                                            .build();
+                                })))
+
+                );
+        System.out.println("Hi");
     }
 
     private void populateMapPrices()
     {
-        for(ProductPriceInfo p : this.productPriceMap.values())
+        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
+            for(ProductPriceInfo p : map.values())
+            {
+                p.purchasePriceVat = p.streetPriceVat * CustomMarginCategoriesEnum.streetMarginByCategory(p.category);
+                double vatlessGeneratedPrice = p.purchasePriceVat * (1D - p.vatValue);
+
+                log.info("VatlessGeneratedPrice for product " + p.sku + " is: " + vatlessGeneratedPrice);
+
+                if(vatlessGeneratedPrice > p.purchasePrice)
+                {
+                    p.generatedPrice = vatlessGeneratedPrice;
+
+                    log.info("VatlessGeneratedPrice is greater than purchase price: " + p.purchasePrice);
+                }
+                else
+                {
+                    double vatlessStreetPrice = p.streetPriceVat * (1D - p.vatValue);
+                    p.generatedPrice = Math.min(p.purchasePrice * Constants.DEFAULT_PRICE_INCREMENT, vatlessStreetPrice);
+
+                    log.info("VatlessGeneratedPrice is lesser than purchase price: " + p.purchasePrice);
+                    log.info("VatlessStreetPrice for product " + p.sku + " is: " + vatlessStreetPrice);
+                    log.info("VatlessGeneratedPrice for product " + p.sku + " is: " + p.generatedPrice +
+                            ". Min(" + p.purchasePrice * Constants.DEFAULT_PRICE_INCREMENT + ", " + vatlessStreetPrice +")");
+                }
+            }
+    }
+
+    private void generateProductWarehouses()
+    {
+        for(String productKey: this.productCodeToInfoMap.keySet())
         {
-            double vatGeneratedPrice = p.streetPriceVat * CustomMarginCategoriesEnum.streetMarginByCategory(p.category);
-            double vatlessGeneratedPrice = vatGeneratedPrice * (1D - p.vatValue);
-            log.info("VatlessGeneratedPrice for product " + p.sku + " is: " + vatlessGeneratedPrice);
+            List<ProductStock> stocks = stockRepository.findQuantityAndWarehouseByProductCode(productKey);
+            stocks.forEach(s -> productCodeToInfoMap.get(productKey).get(s.getWarehouseString()).stockQuantity = s.getQuantity());
 
-            if(vatlessGeneratedPrice > p.purchasePrice)
-            {
-                p.generatedPrice = vatlessGeneratedPrice;
-                log.info("VatlessGeneratedPrice is greater than purchase price: " + p.purchasePrice);
-            }
-            else
-            {
-                double vatlessStreetPrice = p.streetPriceVat * (1D - p.vatValue);
-                log.info("VatlessGeneratedPrice is lesser than purchase price: " + p.purchasePrice);
-                log.info("VatlessStreetPrice for product " + p.sku + " is: " + vatlessStreetPrice);
-                p.generatedPrice = Math.min(p.purchasePrice * Constants.DEFAULT_PRICE_INCREMENT, vatlessStreetPrice);
-                log.info("VatlessGeneratedPrice for product " + p.sku + " is: " + p.generatedPrice +
-                         ". Min(" + p.purchasePrice * Constants.DEFAULT_PRICE_INCREMENT + ", " + vatlessStreetPrice +")");
-            }
-
+            String selectedWarehouse = selectBestWarehouse(stocks, productKey);
+            if(selectedWarehouse != null)
+                productCodeToInfoMap.get(productKey).get(selectedWarehouse).isActive = true;
 
         }
     }
 
-    private void selectProductWarehouse(ProductPriceInfo productInfo)
+    private String selectBestWarehouse(List<ProductStock> stocks, String productKey)
     {
-        List<ProductStock> stocks = stockRepository.findQuantityAndWarehouseByProductCode(productInfo.sku);
-        if(stocks.stream().filter(s -> s.getQuantity() > Constants.MINIMUM_WAREHOUSE_STOCK).anyMatch(s -> s.getWarehouseString().equals("M1")))
-        {
-            productInfo.bestWarehouse = "M1";
-            return;
-        }
+        if (stocks.stream().filter(s -> s.getQuantity() > Constants.MINIMUM_WAREHOUSE_STOCK).anyMatch(s -> s.getWarehouseString().equals("M1")))
+            return "M1";
 
-        List<ProductStock> numerousFilteredStocks = stocks.stream()
+        List<ProductStock> numerousFilteredStocksM2OrM4 = stocks.stream()
                 .filter(s -> s.getQuantity() > Constants.MINIMUM_WAREHOUSE_STOCK)
-                .filter(s -> ((s.getWarehouseString().equals("M2")))||(s.getWarehouseString().equals("M4")))
-                .collect(Collectors.toList());
-        if(!numerousFilteredStocks.isEmpty())
+                .filter(s -> ((s.getWarehouseString().equals("M2"))) || (s.getWarehouseString().equals("M4")))
+                .collect(toList());
+        if (!numerousFilteredStocksM2OrM4.isEmpty())
         {
-            if (numerousFilteredStocks.size() == 1)
+            if (numerousFilteredStocksM2OrM4.size() == 1)
             {
-                productInfo.bestWarehouse = numerousFilteredStocks.get(0).getWarehouseString();
-            }
-            else
+                return numerousFilteredStocksM2OrM4.get(0).getWarehouseString();
+            } else
             {
-                ProductPriceInfo m2Info = productPriceMap.get(new ProductMapKey(productInfo.sku, "M2"));
+                ProductPriceInfo m2Info = productCodeToInfoMap.get(productKey).get("M2");
                 double m2Margin = m2Info.generatedPrice - m2Info.purchasePrice;
-                ProductPriceInfo m4Info = productPriceMap.get(new ProductMapKey(productInfo.sku, "M4"));
+                ProductPriceInfo m4Info = productCodeToInfoMap.get(productKey).get("M4");
                 double m4Margin = m4Info.generatedPrice - m4Info.purchasePrice;
 
-                if(m2Margin > m4Margin)
-                    productInfo.bestWarehouse = "M2";
+                if (m2Margin >= m4Margin) //Condizione di parita, priorita M2
+                    return "M2";
                 else
-                    productInfo.bestWarehouse = "M4";
+                    return "M4";
             }
-            return;
         }
 
-//        else
+        Boolean hasM1 = stocks.stream()
+                .anyMatch(s -> (s.getWarehouseString().equals("M1")));
+        Boolean hasM2 = stocks.stream()
+                .anyMatch(s -> (s.getWarehouseString().equals("M2")));
+        if (hasM1 && hasM2)
+        {
+                ProductPriceInfo m1Info = productCodeToInfoMap.get(productKey).get("M1");
+                ProductPriceInfo m2Info = productCodeToInfoMap.get(productKey).get("M2");
 
-//        if(stocks.stream().filter(s -> s.getQuantity() > Constants.MINIMUM_WAREHOUSE_STOCK)
-//                .anyMatch(s -> ((s.getWarehouseString().equals("M2")))||(s.getWarehouseString().equals("M4"))))
-//        {
-//            productInfo.hasX_M2orM4 = true;
-//            return;
-//        }
+                if (m1Info.stockQuantity >= m2Info.stockQuantity) //Condizione di parita, priorita M1
+                    return "M1";
+                else
+                    return "M2";
+        }
 
+        String mostMarginWh = initializeDefaultWh(productKey);
+        double maxMargin = 0D;
+        double margin;
+        for(ProductPriceInfo p: productCodeToInfoMap.get(productKey).values())
+        {
+            margin = p.generatedPrice - p.purchasePrice;
+
+            if(margin > maxMargin)
+            {
+                maxMargin = margin;
+                mostMarginWh = p.warehouse;
+            }
+        }
+        return mostMarginWh;
     }
 
-    private List<ProductPurchasePriceList> createPurchasePriceEntities()
+    private String initializeDefaultWh(String productKey)
     {
-        return null;
+        if(productCodeToInfoMap.get(productKey).containsKey("M1"))
+            return "M1";
+        if(productCodeToInfoMap.get(productKey).containsKey("M2"))
+            return "M2";
+        if(productCodeToInfoMap.get(productKey).containsKey("M3"))
+            return "M3";
+
+        //Diamo per scontato che abbia almeno un wh dato che e' stato generato partendo da un db consistente
+        return "M4";
+    }
+
+    private void persistSalesPriceEntities()
+    {
+        List<ProductSalesPriceList> priceLists = new ArrayList<>();
+
+        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
+            for(ProductPriceInfo p : map.values())
+            {
+                priceLists.add(
+                        ProductSalesPriceList.builder()
+                        .productSku(productRepository.findById(p.sku))
+                        .streetPriceVat(p.streetPriceVat)
+                        .finalPrice(p.generatedPrice)
+                        .isActive(p.isActive)
+                        .build()
+                );
+
+            }
+
+        salesRepository.persist(priceLists);
     }
 
     @Override

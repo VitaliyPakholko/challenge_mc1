@@ -4,7 +4,7 @@ public interface SalesPricesGenerator
 {
     public void deleteAllPricings();
 
-    public void generateAllPricings();
+    public void generateAllPricings() throws RuntimeException;
 
     public Long countGeneratedPricings();
 }

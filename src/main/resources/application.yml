@@ -14,7 +14,7 @@ quarkus:
       generation: validate
       default-schema: public
     log:
-      sql: true
+      sql: false
 
 
   datasource:
