@@ -24,6 +24,13 @@ quarkus:
     jdbc:
       url: jdbc:h2:file:~/IdeaProjects/mc1/src/main/resources/database
 
+  log:
+    level: INFO
+    min-level: TRACE
+    category:
+      "org.hibernate":
+        level: DEBUG
+
   jackson:
     serialization-inclusion: NON_EMPTY
 

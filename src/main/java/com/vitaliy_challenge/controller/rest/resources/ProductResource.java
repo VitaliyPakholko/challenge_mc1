@@ -3,8 +3,10 @@ package com.vitaliy_challenge.controller.rest.resources;
 import com.vitaliy_challenge.controller.rest.communication.requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.rest.services.ProductService;
 import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
+import io.quarkus.narayana.jta.runtime.TransactionConfiguration;
 
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -37,6 +39,8 @@ public class ProductResource
 
     @GET
     @Path("/generatePricings")
+    @Transactional
+    @TransactionConfiguration(timeout = 180)
     public void generatePricings()
     {
         try

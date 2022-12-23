@@ -10,10 +10,10 @@ import com.vitaliy_challenge.controller.salesPricesLogic.constants.CustomMarginC
 import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
 import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
 import com.vitaliy_challenge.model.entities.ProductStock;
+import io.quarkus.narayana.jta.runtime.TransactionConfiguration;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.*;
+import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Log4j2
 @ApplicationScoped
@@ -41,15 +42,6 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
     ProductStockRepository stockRepository;
 
     private  Map<String, Map<String,ProductPriceInfo>> productCodeToInfoMap;
-
-    @Override
-    @PostConstruct
-    @Transactional
-    public void deleteAllPricings()
-    {
-        return;
-//        salesRepository.deleteAll();
-    }
 
     @Builder
     @NoArgsConstructor
@@ -71,16 +63,26 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
     }
 
     @Override
+//    @PostConstruct
+    @Transactional
+    public void deleteAllPricings()
+    {
+        salesRepository.deleteAll();
+    }
+
+    @Override
     public void generateAllPricings() throws RuntimeException
     {
+        this.deleteAllPricings();
         this.populatePurchasePriceMap();
         this.populateMapPrices();
         this.generateProductWarehouses();
-        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
-            for(ProductPriceInfo p: map.values())
-                if(p.isActive != null && p.isActive)
-                    System.out.println("Active: " + p.sku + " with stock: " + p.stockQuantity + " in warehouse: " + p.warehouse);
-        System.out.println("Hi");
+        this.persistSalesPriceEntities();
+//        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
+//            for(ProductPriceInfo p: map.values())
+//                if(p.isActive != null && p.isActive)
+//                    System.out.println("Active: " + p.sku + " with stock: " + p.stockQuantity + " in warehouse: " + p.warehouse);
+//        System.out.println("Hi");
     }
 
     private void populatePurchasePriceMap() throws RuntimeException
@@ -112,7 +114,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
                                 })))
 
                 );
-        System.out.println("Hi");
+//        System.out.println("Hi");
     }
 
     private void populateMapPrices()
@@ -230,6 +232,8 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
         return "M4";
     }
 
+    @Transactional
+    @TransactionConfiguration(timeout = 180)
     private void persistSalesPriceEntities()
     {
         List<ProductSalesPriceList> priceLists = new ArrayList<>();
@@ -239,7 +243,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
             {
                 priceLists.add(
                         ProductSalesPriceList.builder()
-                        .productSku(productRepository.findById(p.sku))
+                        .productSkuString(p.sku)
                         .streetPriceVat(p.streetPriceVat)
                         .finalPrice(p.generatedPrice)
                         .isActive(p.isActive)
@@ -248,7 +252,9 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
 
             }
 
+        log.info("About to persist the sales prices");
         salesRepository.persist(priceLists);
+        log.info("SUCCESS");
     }
 
     @Override
