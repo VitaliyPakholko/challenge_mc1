@@ -7,15 +7,18 @@ import com.vitaliy_challenge.controller.rest.repositories.ProductStockRepository
 import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.Constants;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.CustomMarginCategoriesEnum;
+import com.vitaliy_challenge.model.entities.Product;
 import com.vitaliy_challenge.model.entities.ProductPurchasePrice;
 import com.vitaliy_challenge.model.entities.ProductSalesPrice;
 import com.vitaliy_challenge.model.entities.ProductStock;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
+import org.h2.expression.function.CurrentDateTimeValueFunction;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.time.*;
 import java.util.*;
 
 import static java.util.stream.Collectors.*;
@@ -71,7 +74,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
         this.deleteAllPricings();
         this.populatePurchasePriceMap();
         this.populateMapPrices();
-        this.generateProductWarehouses();
+        this.populateProductWarehouses();
         return this.createSalesPriceEntities();
     }
 
@@ -135,7 +138,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
             }
     }
 
-    private void generateProductWarehouses()
+    private void populateProductWarehouses()
     {
         List<ProductStock> stocks = stockRepository.listAll();
         Map<String, List<ProductStock>> stockMap;
@@ -158,6 +161,8 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
             }
 
         }
+
+        log.info("Calculated best warehouses for all the products.");
     }
 
     private String selectBestWarehouse(List<ProductStock> stocks, String productKey)
@@ -236,25 +241,47 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
     private List<ProductSalesPrice> createSalesPriceEntities()
     {
         List<ProductSalesPrice> priceList = new LinkedList<>();
+        Date date = new Date();
+        Instant inst = date.toInstant();
+        LocalDate localDate = inst.atZone(ZoneId.systemDefault()).toLocalDate();
+        Instant tomorrowMidnight = localDate.atStartOfDay(ZoneId.systemDefault()).plusDays(1).toInstant();
 
         for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
             for(ProductPriceInfo p : map.values())
+            {
+                Product product = productRepository.findById(p.sku);
                 priceList.add(
                         ProductSalesPrice.builder()
-                                .productSku(productRepository.findById(p.sku))
+                                .productSku(product)
                                 .streetPriceVat(p.streetPriceVat)
                                 .finalPrice(p.generatedPrice)
                                 .isActive(p.isActive)
                                 .build()
                 );
+
+                //Unico appunto, qua considero che se e' attivo il listino di vendita, e' attiva anche l'offerta e viceversa
+                if(CustomMarginCategoriesEnum.isCategoryPromotional(product.getCategoryCodeString()))
+                    priceList.add(
+                            ProductSalesPrice.builder()
+                                    .productSku(product)
+                                    .streetPriceVat(p.streetPriceVat)
+                                    .finalPrice(p.generatedPrice * Constants.PROMOTIONAL_DISCOUNT)
+                                    .isActive(p.isActive)
+                                    .promotion(Constants.PROMOTIONAL_SLOGAN)
+                                    .dateFrom(Instant.now())
+                                    .dateTo(tomorrowMidnight)
+                                    .build()
+                    );
+                //Avrei potuto filtrare e salvare solo i listini/promozioni attivi ma non c'e' nulla nella specifica a riguardo
+            }
         return priceList;
     }
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void persistGeneratedPriceEntities(List<ProductSalesPrice> priceListBatch)
+    public void persistGeneratedPriceEntities(List<ProductSalesPrice> salesPriceListBatch)
     {
         log.info("About to persist the sales prices");
-        salesRepository.persist(priceListBatch);
-        log.info("SUCCESS");
+        salesRepository.persist(salesPriceListBatch);
+        log.info("SUCCESS, persisted: " + salesPriceListBatch.size() + " sales prices.");
     }
 }

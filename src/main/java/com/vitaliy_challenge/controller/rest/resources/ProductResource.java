@@ -39,8 +39,6 @@ public class ProductResource
         return Response.ok(productService.filteredProducts(request)).build();
     }
 
-
-    private List<ProductSalesPrice> p = new ArrayList<>();
     @GET
     @Path("/generatePricings")
     public void generatePricings()
@@ -53,7 +51,7 @@ public class ProductResource
     @Transactional      //PLACEHOLDER per raggirare momentaneamente i problemi con la transazione rest
     public void persistPricings(List<ProductSalesPrice> productSalesPrices)
     {
-        generator.persistGeneratedPriceEntities(p);
+        generator.persistGeneratedPriceEntities(productSalesPrices);
     }
 
 }

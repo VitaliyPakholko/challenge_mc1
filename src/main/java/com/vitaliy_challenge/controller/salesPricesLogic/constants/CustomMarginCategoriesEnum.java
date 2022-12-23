@@ -5,7 +5,9 @@ import lombok.Getter;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Singleton
 public enum CustomMarginCategoriesEnum
@@ -30,6 +32,13 @@ public enum CustomMarginCategoriesEnum
         }
     }
 
+    private static final Set<String> PROMOTIONAL_CATEGORIES = new HashSet<>();
+
+    static {
+        PROMOTIONAL_CATEGORIES.add(FIT.label);
+        PROMOTIONAL_CATEGORIES.add(HOM.label);
+        PROMOTIONAL_CATEGORIES.add(NET.label);
+    }
     public final String label;
     public final Double streetPriceMargin;
 
@@ -42,5 +51,10 @@ public enum CustomMarginCategoriesEnum
         if(MARGIN_BY_CATEGORY_MAP.containsKey(label))
             return MARGIN_BY_CATEGORY_MAP.get(label).streetPriceMargin;
         return Constants.DEFAULT_STREET_MARGIN;
+    }
+
+    public static Boolean isCategoryPromotional(String category)
+    {
+        return PROMOTIONAL_CATEGORIES.contains(category);
     }
 }

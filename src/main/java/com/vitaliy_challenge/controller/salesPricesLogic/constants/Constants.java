@@ -18,5 +18,7 @@ public abstract class Constants
     public static final Double DEFAULT_STREET_MARGIN = 1D - 0.10;
     public static final Double DEFAULT_PRICE_INCREMENT = 1D + 0.03;
     public static final Integer MINIMUM_WAREHOUSE_STOCK = 50;
+    public static final String PROMOTIONAL_SLOGAN = "Offerta";
+    public static final Double PROMOTIONAL_DISCOUNT = 1D - 0.01;
 
 }
