@@ -32,6 +32,6 @@ public interface ProductMapper extends IMapper<Product, ProductDtoFull>
     @AfterMapping
     default void linkProductSalesPriceLists(@MappingTarget Product product)
     {
-        product.getProductSalesPriceLists().forEach(productSalesPriceList -> productSalesPriceList.setProductSku(product));
+        product.getProductSalesPrices().forEach(productSalesPriceList -> productSalesPriceList.setProductSku(product));
     }
 }

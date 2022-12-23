@@ -58,7 +58,7 @@ public class Product
     @JsonManagedReference
     @OneToMany(mappedBy = "productSku", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private Set<ProductSalesPriceList> productSalesPriceLists = new LinkedHashSet<>();
+    private Set<ProductSalesPrice> productSalesPrices = new LinkedHashSet<>();
 
     @JsonIgnore
     @Column(name = "CATEGORY_CODE", insertable = false, updatable = false)

@@ -1,7 +1,6 @@
 package com.vitaliy_challenge.model.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.Hibernate;
 
@@ -17,7 +16,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductSalesPriceList
+public class ProductSalesPrice
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,15 +25,10 @@ public class ProductSalesPriceList
 
     @NonNull
     @JsonBackReference
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "PRODUCT_SKU", nullable = false, insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false/*, cascade = {CascadeType.PERSIST, CascadeType.MERGE}*/)
+    @JoinColumn(name = "PRODUCT_SKU", nullable = false/*, insertable = false, updatable = false*/)
     @ToString.Exclude
     private Product productSku;
-
-    @Column(name = "PRODUCT_SKU", nullable = false)
-    @ToString.Exclude
-    @JsonIgnore
-    private String productSkuString;
 
     @NonNull
     @Column(name = "STREET_PRICE_VAT", nullable = false)
@@ -61,7 +55,7 @@ public class ProductSalesPriceList
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ProductSalesPriceList that = (ProductSalesPriceList) o;
+        ProductSalesPrice that = (ProductSalesPrice) o;
         return id != null && Objects.equals(id, that.id);
     }
 

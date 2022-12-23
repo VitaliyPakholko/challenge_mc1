@@ -8,22 +8,17 @@ import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.Constants;
 import com.vitaliy_challenge.controller.salesPricesLogic.constants.CustomMarginCategoriesEnum;
 import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
-import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
+import com.vitaliy_challenge.model.entities.ProductSalesPrice;
 import com.vitaliy_challenge.model.entities.ProductStock;
-import io.quarkus.narayana.jta.runtime.TransactionConfiguration;
 import lombok.*;
 import lombok.extern.log4j.Log4j2;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.*;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 
 @Log4j2
 @ApplicationScoped
@@ -71,18 +66,13 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
     }
 
     @Override
-    public void generateAllPricings() throws RuntimeException
+    public List<ProductSalesPrice> generateAllPricings() throws RuntimeException
     {
         this.deleteAllPricings();
         this.populatePurchasePriceMap();
         this.populateMapPrices();
         this.generateProductWarehouses();
-        this.persistSalesPriceEntities();
-//        for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
-//            for(ProductPriceInfo p: map.values())
-//                if(p.isActive != null && p.isActive)
-//                    System.out.println("Active: " + p.sku + " with stock: " + p.stockQuantity + " in warehouse: " + p.warehouse);
-//        System.out.println("Hi");
+        return this.createSalesPriceEntities();
     }
 
     private void populatePurchasePriceMap() throws RuntimeException
@@ -114,7 +104,6 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
                                 })))
 
                 );
-//        System.out.println("Hi");
     }
 
     private void populateMapPrices()
@@ -148,14 +137,25 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
 
     private void generateProductWarehouses()
     {
+        List<ProductStock> stocks = stockRepository.listAll();
+        Map<String, List<ProductStock>> stockMap;
+
+        stockMap = stocks.stream().collect(groupingBy(ProductStock::getProductSkuString));
+
         for(String productKey: this.productCodeToInfoMap.keySet())
         {
-            List<ProductStock> stocks = stockRepository.findQuantityAndWarehouseByProductCode(productKey);
-            stocks.forEach(s -> productCodeToInfoMap.get(productKey).get(s.getWarehouseString()).stockQuantity = s.getQuantity());
+            if(stockMap.containsKey(productKey))
+            {
+                stockMap.get(productKey).forEach(s -> productCodeToInfoMap.get(productKey).get(s.getWarehouseString()).stockQuantity = s.getQuantity());
 
-            String selectedWarehouse = selectBestWarehouse(stocks, productKey);
-            if(selectedWarehouse != null)
-                productCodeToInfoMap.get(productKey).get(selectedWarehouse).isActive = true;
+                String selectedWarehouse = selectBestWarehouse(stocks, productKey);
+                if (selectedWarehouse != null)
+                {
+                    //Gli stock contengono tutti i warehouse prodotto ma non e' detto che nel listino vendita ci siano tutti i warehouse in stock
+                    if(productCodeToInfoMap.get(productKey).containsKey(selectedWarehouse))
+                        productCodeToInfoMap.get(productKey).get(selectedWarehouse).isActive = true;
+                }
+            }
 
         }
     }
@@ -203,7 +203,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
                     return "M2";
         }
 
-        String mostMarginWh = initializeDefaultWh(productKey);
+        String mostMarginWh = initializeDefaultWH(productKey);
         double maxMargin = 0D;
         double margin;
         for(ProductPriceInfo p: productCodeToInfoMap.get(productKey).values())
@@ -219,7 +219,7 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
         return mostMarginWh;
     }
 
-    private String initializeDefaultWh(String productKey)
+    private String initializeDefaultWH(String productKey)
     {
         if(productCodeToInfoMap.get(productKey).containsKey("M1"))
             return "M1";
@@ -232,34 +232,29 @@ public class SalesPriceGeneratorImpl implements SalesPricesGenerator
         return "M4";
     }
 
-    @Transactional
-    @TransactionConfiguration(timeout = 180)
-    private void persistSalesPriceEntities()
+//    @Transactional
+    private List<ProductSalesPrice> createSalesPriceEntities()
     {
-        List<ProductSalesPriceList> priceLists = new ArrayList<>();
+        List<ProductSalesPrice> priceList = new LinkedList<>();
 
         for(Map<String, ProductPriceInfo> map : this.productCodeToInfoMap.values())
             for(ProductPriceInfo p : map.values())
-            {
-                priceLists.add(
-                        ProductSalesPriceList.builder()
-                        .productSkuString(p.sku)
-                        .streetPriceVat(p.streetPriceVat)
-                        .finalPrice(p.generatedPrice)
-                        .isActive(p.isActive)
-                        .build()
+                priceList.add(
+                        ProductSalesPrice.builder()
+                                .productSku(productRepository.findById(p.sku))
+                                .streetPriceVat(p.streetPriceVat)
+                                .finalPrice(p.generatedPrice)
+                                .isActive(p.isActive)
+                                .build()
                 );
-
-            }
-
-        log.info("About to persist the sales prices");
-        salesRepository.persist(priceLists);
-        log.info("SUCCESS");
+        return priceList;
     }
 
-    @Override
-    public Long countGeneratedPricings()
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void persistGeneratedPriceEntities(List<ProductSalesPrice> priceListBatch)
     {
-        return null;
+        log.info("About to persist the sales prices");
+        salesRepository.persist(priceListBatch);
+        log.info("SUCCESS");
     }
 }

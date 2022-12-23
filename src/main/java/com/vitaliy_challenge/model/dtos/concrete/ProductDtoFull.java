@@ -3,7 +3,7 @@ package com.vitaliy_challenge.model.dtos.concrete;
 import com.vitaliy_challenge.model.dtos.GenericDto;
 import com.vitaliy_challenge.model.entities.Category;
 import com.vitaliy_challenge.model.entities.ProductPurchasePriceList;
-import com.vitaliy_challenge.model.entities.ProductSalesPriceList;
+import com.vitaliy_challenge.model.entities.ProductSalesPrice;
 import com.vitaliy_challenge.model.entities.ProductStock;
 import lombok.Builder;
 import lombok.Data;
@@ -27,5 +27,5 @@ public class ProductDtoFull extends GenericDto implements Serializable
     private final Category categoryCode;
     private final Set<ProductStock> productStocks;
     private final Set<ProductPurchasePriceList> productPurchasePriceLists;
-    private final Set<ProductSalesPriceList> productSalesPriceLists;
+    private final Set<ProductSalesPrice> productSalesPrices;
 }

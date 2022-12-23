@@ -3,13 +3,15 @@ package com.vitaliy_challenge.controller.rest.resources;
 import com.vitaliy_challenge.controller.rest.communication.requests.PagedProductRequest;
 import com.vitaliy_challenge.controller.rest.services.ProductService;
 import com.vitaliy_challenge.controller.salesPricesLogic.SalesPricesGenerator;
-import io.quarkus.narayana.jta.runtime.TransactionConfiguration;
+import com.vitaliy_challenge.model.entities.ProductSalesPrice;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 @Path("/product")
 public class ProductResource
@@ -37,19 +39,21 @@ public class ProductResource
         return Response.ok(productService.filteredProducts(request)).build();
     }
 
+
+    private List<ProductSalesPrice> p = new ArrayList<>();
     @GET
     @Path("/generatePricings")
-    @Transactional
-    @TransactionConfiguration(timeout = 180)
     public void generatePricings()
     {
-        try
-        {
-            generator.generateAllPricings();
-        } catch (RuntimeException e)
-        {
-            System.out.println("Failed to generate pricings");
-        }
+        persistPricings( generator.generateAllPricings());
+    }
+
+    @GET
+    @Path("/persistPricings")
+    @Transactional      //PLACEHOLDER per raggirare momentaneamente i problemi con la transazione rest
+    public void persistPricings(List<ProductSalesPrice> productSalesPrices)
+    {
+        generator.persistGeneratedPriceEntities(p);
     }
 
 }

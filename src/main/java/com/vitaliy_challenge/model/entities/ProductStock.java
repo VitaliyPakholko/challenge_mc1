@@ -30,6 +30,11 @@ public class ProductStock
     @ToString.Exclude
     private Product productSku;
 
+    @Column(name = "PRODUCT_SKU", insertable = false, updatable = false)
+    @JsonIgnore
+    @ToString.Exclude
+    private String productSkuString;
+
     @NonNull
     @Column(name = "QUANTITY", nullable = false)
     private Integer quantity;

@@ -29,7 +29,7 @@ quarkus:
     min-level: TRACE
     category:
       "org.hibernate":
-        level: DEBUG
+        level: ERROR
 
   jackson:
     serialization-inclusion: NON_EMPTY
