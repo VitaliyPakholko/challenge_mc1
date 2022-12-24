@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.List;
 
 @Path("/product")
@@ -23,7 +22,7 @@ public class ProductResource
     SalesPricesGenerator generator;
 
     @GET
-    @Path("/findbyId/{id}")
+    @Path("/productById/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProductById(@PathParam("id") String id)
     {
@@ -31,7 +30,7 @@ public class ProductResource
     }
 
     @POST
-    @Path("/filteredProduct")
+    @Path("/filteredProducts")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response filterProducts(PagedProductRequest request)
@@ -40,7 +39,7 @@ public class ProductResource
     }
 
     @GET
-    @Path("/generatePricings")
+    @Path("/generateSalesPricings")
     public void generatePricings()
     {
         persistPricings( generator.generateAllPricings());
