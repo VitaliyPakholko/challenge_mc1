@@ -8,6 +8,9 @@ Maven.
 Oppure:  
 Docker.
 
+I dockerfiles sono stati generati nella cartella src/main/docker.  
+Non ho avuto ancora modo di generare l'immagine perche' non ho installato GraalVM su linux.
+
 # Descrizione progetto e motivazione scelte effettuate
 
 Per startare il progetto in locale (Intellij) : CTRL+CTRL mvn clean quarkus:dev.  
@@ -33,6 +36,7 @@ E' stata creata un'unica risorsa data la semplicita' della coppia dei requisiti+
 Per visualizzare PRODUCT BY ID e' consigliato fare la chiamata direttamente nel browser invece che su swagger-ui per usufruire del pretty JSON ed avere controllo sugli ogetti collegati al product.
 
 La chiamata FILTERED PRODUCTS ha gli input in AND come da requisito, in piu' ignora qualsiasi attributo null in input in modo da consentire qualsiasi combinazione di filtri.
+La paginazione parte da 1 e non 0.
 
 La chiamata GENERATE SALE PRICINGS prima pulisce la tabella corrispettiva del DB e poi calcola e persiste i listini richiesti dalla business logic.  
 Esiste un'altra chiamata PERSIST PRICINGS, la chiamata non e' da utilizzare direttamente ma serve per un workaround riguardo @Transactional di quarkus.   
