@@ -46,9 +46,13 @@ public class ProductStock
     @ToString.Exclude
     private SupplierWarehouse supplierWarehouseCode;
 
+    // Attributi estratti come stringa per ottimizzare query 
+
     @JsonIgnore
     @Column(name = "SUPPLIER_WAREHOUSE_CODE", insertable = false, updatable = false)
     private String warehouseString;
+
+    //-------------------------------------------
 
     @Override
     public boolean equals(Object o) {

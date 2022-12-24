@@ -25,8 +25,8 @@ public class ProductSalesPrice
 
     @NonNull
     @JsonBackReference
-    @ManyToOne(fetch = FetchType.LAZY, optional = false/*, cascade = {CascadeType.PERSIST, CascadeType.MERGE}*/)
-    @JoinColumn(name = "PRODUCT_SKU", nullable = false/*, insertable = false, updatable = false*/)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "PRODUCT_SKU", nullable = false)
     @ToString.Exclude
     private Product productSku;
 

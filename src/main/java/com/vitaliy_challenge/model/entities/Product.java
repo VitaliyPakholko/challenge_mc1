@@ -60,9 +60,13 @@ public class Product
     @ToString.Exclude
     private Set<ProductSalesPrice> productSalesPrices = new LinkedHashSet<>();
 
+    // Attributi estratti come stringa per ottimizzare query
+
     @JsonIgnore
     @Column(name = "CATEGORY_CODE", insertable = false, updatable = false)
     private String categoryCodeString;
+
+    // -------------------------------------------
 
     @Override
     public boolean equals(Object o) {

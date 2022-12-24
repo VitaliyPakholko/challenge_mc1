@@ -45,10 +45,13 @@ public class ProductPurchasePrice
     @Column(name = "PRODUCT_SKU", insertable = false, updatable = false)
     private String productCode;
 
+    // Attributi estratti come stringa per ottimizzare query
+
     @JsonIgnore
     @Column(name = "SUPPLIER_WAREHOUSE_CODE", insertable = false, updatable = false)
     private String warehouseString;
 
+    // -------------------------------------------
 
     @Override
     public boolean equals(Object o) {
