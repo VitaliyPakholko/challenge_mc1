@@ -3,7 +3,7 @@
 ## Pre requisiti
 
 A scelta tra:  
-JDK/SDF Java 11+.  
+JDK/SDK Java 11+.  
 Maven.  
 Oppure:  
 Docker.
